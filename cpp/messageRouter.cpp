@@ -26,10 +26,6 @@
 
 #include "messageRouter.h"
 
-messageRouter::messageRouter(){
-
-}
-
 int messageRouter::addTarget(int sm,int node){
 // This function should be called only if link is added	
 	print_debug(2,"Adding Smart meter %d for parent %d\n",sm,node);
@@ -53,7 +49,7 @@ int messageRouter::addTarget(int sm,int node){
 int messageRouter::addTargetLink(int node,POWER_POOL * outPool){
 	print_debug(2,"Adding link for parent %d \n",node);
 	if (targetLinks.count(node) == 0){
-		targetLinks[node] = * outPool;
+		targetLinks[node] = outPool;
 		return 0;
 	}
 	else{
@@ -66,12 +62,30 @@ int messageRouter::addTargetLink(int node,POWER_POOL * outPool){
 void messageRouter::init()
 {
     //initialize if required
-    start();
+	start();
 }
 
 void messageRouter::run()
 {
+	powerEvent t;
+	print_debug(3,"Router run: %d\n",routerId);
 	while(1)
 	{
-	}
+		t = inLink->pop();
+		print_debug(0,"router %d:received data ts %d power %f\n",routerId,t.ts,t.power);
+//		receiveData(t.plug,t.ts,t.power);
+		if (targets.count(t.id) != 0){  // the target is unknown 
+//			print_debug(9,"server for sm %d is %d\n",t.id,targets[t.id]);
+			if (targetLinks.count(targets[t.id]) != 0){ // the link is already set
+				targetLinks[targets[t.id]]->push(t);
+				print_debug(9,"pushing for sm %d to server %d\n",t.id,targets[t.id]);
+			}
+			else{
+				print_error("Server for SM does not exist %d\n",t.id);			
+			}
+		}
+		else{
+			print_error("SM does not exist %d\n",t.id);			
+		}
+	}	
 }
