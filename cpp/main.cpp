@@ -38,7 +38,7 @@ void createNetwork(){
 	Reader1 fr1(9998,routerLink);
 	
 	POWER_POOL *link1;
-	std::map<int,POWER_POOL *> links;
+	std::map<int,POWER_POOL *> links; // changed to pointer to avoid object cloning
 	nodeProcessor * processor;
 	std::map<int,nodeProcessor> processors;
 	

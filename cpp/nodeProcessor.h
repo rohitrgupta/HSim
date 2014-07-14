@@ -49,7 +49,7 @@ public:
 	POWER_POOL * inLink;
 	POWER_POOL * outLink;
 	int nodeId,parentId,lastTs;
-	std::map<int,POWER_POOL *> childLinks;
+	std::map<int,POWER_POOL *> childLinks; // changed to pointer to avoid object cloning
 	std::map<int,int > childs;
 
 };
