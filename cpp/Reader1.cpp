@@ -67,7 +67,8 @@ int Reader1::send(std::string token){
         }
         q++;
     }
-    if (colNo < 6){
+    if (colNo < 3){
+	    print_error("data format error %d\n",10004);
         return -1;
     }
     powerEvent t1;
@@ -152,7 +153,7 @@ void Reader1::runFromFile()
         while (std::getline(is, s))
         {
 		// Process str
-		print_debug(3,"send called: %d\n",0);
+		print_debug(11,"send called: %d\n",0);
 		send(s.append(",#"));
         }
         /*
