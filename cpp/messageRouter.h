@@ -33,14 +33,16 @@
 class messageRouter:public Thread
 {
 public:
-	messageRouter();
+	messageRouter(int id,POWER_POOL * inPool)
+        : inLink(inPool), routerId(id)  {}
 	int addTarget(int sm,int node);
 	int addTargetLink(int node,POWER_POOL * outPool);
 	virtual void run();
 	void init();
 
+	int routerId;
 	POWER_POOL * inLink;
-	std::map<int,POWER_POOL > targetLinks;
+	std::map<int,POWER_POOL *> targetLinks;
 	std::map<int,int > targets;
 
 };
