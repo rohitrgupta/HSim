@@ -38,7 +38,7 @@ public:
 	nodeProcessor();
 
 	nodeProcessor(int id,POWER_POOL * inPool)
-        : inLink(inPool), nodeID(id)  {}
+        : inLink(inPool), nodeId(id)  {}
         int addOutLink(int parent,POWER_POOL * outPool);
         int addChildLink(POWER_POOL * childPool);
 	int addChildLink(int child,POWER_POOL * outPool);
@@ -48,8 +48,8 @@ public:
 	
 	POWER_POOL * inLink;
 	POWER_POOL * outLink;
-	int nodeID,parentID,lastTs;
-	std::map<int,POWER_POOL > childLinks;
+	int nodeId,parentId,lastTs;
+	std::map<int,POWER_POOL *> childLinks;
 	std::map<int,int > childs;
 
 };
