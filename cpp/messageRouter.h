@@ -42,7 +42,7 @@ public:
 
 	int routerId;
 	POWER_POOL * inLink;
-	std::map<int,POWER_POOL *> targetLinks;
+	std::map<int,POWER_POOL *> targetLinks; // changed to pointer to avoid object cloning
 	std::map<int,int > targets;
 
 };
