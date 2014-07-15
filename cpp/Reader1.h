@@ -3,6 +3,7 @@
 #include "Thread.h"
 #include "priorityPool.h"
 #include "main.h"
+#include "common.h"
 #include <string>
 using namespace std;
 

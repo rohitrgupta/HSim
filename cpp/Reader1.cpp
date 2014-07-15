@@ -38,31 +38,24 @@ int Reader1::send(std::string token){
 
     p=s;
     q=p;
-    int ii,colNo =0,ts;
-    float ff,pow;
+    int colNo =0,ts;
+    float pow;
     char cc,plug_id;
-	print_debug(3,"Data: %s\n",s);;
+	print_debug(3,"Data: %s\n",s);
 
     while (*q!= '#'){
         if(*q==','){
             *q = '\0';
             if(colNo == 0){
-                ii = atoi(p);
-                ts=ii;
-                //printf("col %d:%d\n",colNo ,ii);
+                ts = atoi(p);
             }
             if(colNo == 1){
-                ii = atoi(p);
-                plug_id=ii;
-                //printf("col %d:%d\n",colNo ,ii);
+                plug_id = atoi(p);
             }
             if(colNo == 2){
-                ff = atof(p);
-                pow=ff;
-                //printf("Pow %d:%f\n",colNo ,ff);
+                pow = atof(p);
             }
             p=q+1;
-            //colNo =(colNo+1)%7;
             colNo = colNo+1;
         }
         q++;
@@ -74,19 +67,18 @@ int Reader1::send(std::string token){
     powerEvent t1;
     //tick2 t2;
     //printf("%d\n",lastTs);
-    t1.flgTsEnd = false;
-    t1.power = ff;
+    t1.eventType = POWER_EVENT;
+    t1.power = pow;
     t1.id =plug_id;
     t1.ts =ts;
 
 //    if (ts > lastTs){
 //        gettimeofday(&now, NULL);
 //    }
-
-    if (plug_id <= 5 ){
+    if (plug_id <= 100000 ){
         if (routerLink){
             routerLink->push(t1);
-        }
+    }
         /*
         if (sendList != NULL){
             std::vector<Pool<tick2>*>::iterator it;

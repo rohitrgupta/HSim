@@ -72,13 +72,32 @@ void messageRouter::run()
 	while(1)
 	{
 		t = inLink->pop();
-		print_debug(0,"router %d:received data ts %d power %f\n",routerId,t.ts,t.power);
+		print_debug(0,"router %d:received data ts %d at %d sm %d power %f\n",routerId,t.ts,lastTs,t.id,t.power);
 //		receiveData(t.plug,t.ts,t.power);
+		if (t.ts != lastTs){
+			powerEvent ts;
+			ts.ts = lastTs;
+			ts.eventType = TS_EVENT;
+			ts.power = 0;
+			// send finish event to all nodes
+			// they will also send end event to parent
+			// parent should receive all the confirmation to move farward
+			// it will be the last event to be processed by the server
+			for (std::map<int,int>::iterator it = targets.begin() ; it != targets.end(); ++it){
+				ts.id  = it->first;
+				print_debug(9,"sending TS for sm %d to server #%d\n",ts.id,targetLinks[it->second]->pool_id);
+				targetLinks[it->second]->push(ts);
+			}
+			print_debug(3,"Sleeping: %d to %d \n",lastTs,t.ts);
+			sleep(1);
+			lastTs = t.ts;
+		}
+		
 		if (targets.count(t.id) != 0){  // the target is unknown 
 //			print_debug(9,"server for sm %d is %d\n",t.id,targets[t.id]);
 			if (targetLinks.count(targets[t.id]) != 0){ // the link is already set
 				targetLinks[targets[t.id]]->push(t);
-				print_debug(9,"pushing for sm %d to server %d\n",t.id,targets[t.id]);
+				print_debug(9,"sending power for sm %d to server %d\n",t.id,targets[t.id]);
 			}
 			else{
 				print_error("Server for SM does not exist %d\n",t.id);			

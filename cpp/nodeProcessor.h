@@ -27,6 +27,7 @@
 #ifndef NODEPROCESSOR_H
 #define NODEPROCESSOR_H
 #include "main.h"
+#include "common.h"
 #include "priorityPool.h"
 #include "Thread.h"
 
@@ -48,9 +49,11 @@ public:
 	
 	POWER_POOL * inLink;
 	POWER_POOL * outLink;
+	std::map<int,POWER_POOL *> outLinks;
 	int nodeId,parentId,lastTs;
 	std::map<int,POWER_POOL *> childLinks; // changed to pointer to avoid object cloning
-	std::map<int,int > childs;
+	std::map<int,int> childs;
+	std::map<int,smData> powerData;
 
 };
 

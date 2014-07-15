@@ -27,6 +27,7 @@
 #ifndef MESSAGEROUTER_H
 #define MESSAGEROUTER_H
 #include "main.h"
+#include "common.h"
 #include "priorityPool.h"
 #include "Thread.h"
 
@@ -34,13 +35,13 @@ class messageRouter:public Thread
 {
 public:
 	messageRouter(int id,POWER_POOL * inPool)
-        : inLink(inPool), routerId(id)  {}
+        : inLink(inPool), routerId(id),lastTs(0)  {}
 	int addTarget(int sm,int node);
 	int addTargetLink(int node,POWER_POOL * outPool);
 	virtual void run();
 	void init();
 
-	int routerId;
+	int routerId,lastTs;
 	POWER_POOL * inLink;
 	std::map<int,POWER_POOL *> targetLinks; // changed to pointer to avoid object cloning
 	std::map<int,int > targets;

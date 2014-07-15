@@ -9,9 +9,37 @@
 
 #define POOL_MESSAGE 1
 
+#define POWER_EVENT 100001
+#define TS_EVENT 100002
+
+
 #define print_pool(fmt, ...) \
             do { if (POOL_MESSAGE) {fprintf(stdout, fmt, __VA_ARGS__); }} while (0)
 
+#define POOL_STAT print_pool("[Pool %d] count %d \n",(int)pool_id,data.size());		    
+		    
+struct powerEvent
+{
+    int id;
+    int ts;
+    float power;
+    int eventType;
+    int nextTs;
+};
+
+
+// following class is required for queue comparison
+class CompareTs {
+public:
+    bool operator()(powerEvent& p1, powerEvent& p2)
+    {
+       if (p1.ts > p2.ts) return true;
+       else if (p1.ts == p2.ts && p1.eventType > p2.eventType) return true;
+       return false;
+    }
+};
+
+		    
 
 template <class T,class compareT> class Pool
 {
@@ -104,6 +132,38 @@ public:
 	print_pool("[Pool %d] count %d \n",(int)pool_id,data.size());
         return item;
     }
+
+    T pop(int eventType, int ts)
+    {
+        mtx.lock();
+	int dataAvailable = 0; 
+        while (dataAvailable <= 0)
+        {
+            if (data.size() > 0){
+		T item = data.top();
+		if (item.eventType <= eventType && item.ts == ts){
+			dataAvailable =1;
+			continue;
+		}
+	    }
+
+            mtx.unlock();
+            e_count ++;
+            cont_e_count ++;
+            if(e_count%10000 == 1){
+                print_pool("[Pool %d] partial empty: count %d,%d \n",(int)pool_id,e_count,cont_e_count);
+            }
+            usleep(spin_time);
+            mtx.lock();
+        }
+        cont_e_count = 0;
+        T item = data.top();
+        data.pop();
+        mtx.unlock();
+	print_pool("[Pool %d] count %d \n",(int)pool_id,data.size());
+        return item;
+    }
+
     std::vector<T> popAll()
     {
         mtx.lock();
@@ -111,7 +171,7 @@ public:
         while (data.size() > 0 )
         {
 
-            T item = data.front();
+            T item = data.top();
             data.pop();
             items.push_back(item);
         }
@@ -119,6 +179,7 @@ public:
 	print_pool("[Pool %d] count %d \n",(int)pool_id,data.size());
         return items;
     }
+    
     T front()
     {
         mtx.lock();

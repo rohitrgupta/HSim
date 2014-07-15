@@ -32,7 +32,7 @@ void createNetwork(){
 //	create processor thread for each parent using these links as "inLink"
 	
 	POWER_POOL *routerLink;
-	routerLink = new  POWER_POOL(5,50,9999);
+	routerLink = new  POWER_POOL(50,50,9999);
 	
 	messageRouter r1(9999,routerLink);
 	Reader1 fr1(9998,routerLink);
@@ -46,14 +46,15 @@ void createNetwork(){
 	for (std::vector<node>::iterator it = net.begin() ; it != net.end(); ++it){
 		if (links.count(it->parentID) == 0){
 			print_debug(2,"Making link for %d\n",it->parentID);
-			link1 = new POWER_POOL(5,50,it->parentID);
+			link1 = new POWER_POOL(50,50,it->parentID);
 			links[it->parentID] = link1;
 			processor = new nodeProcessor(it->parentID,link1);
 			processors[it->parentID] = *processor;
 			higherNodes[it->parentID] = 1;
+			print_debug(2,"link for %d is %d\n",it->parentID,links[it->parentID]->pool_id);
 		}
-		
 	}
+	
 
 	for (std::vector<node>::iterator it = net.begin() ; it != net.end(); ++it){
 		// add child to parent this should be done for all entries in the map
@@ -63,8 +64,8 @@ void createNetwork(){
 		
 		// if node is a parent and not root its output link will exist
 		// roots entry do not exist in the net
-		if (links.count(it->nodeID) != 0){
-			print_debug(2,"link exist %d \n",it->nodeID);
+		if (links.count(it->nodeID) != 0){ // this is just a check 
+			print_debug(2,"link exist %d parent %d linkid %d \n",it->nodeID,it->parentID,links[it->parentID]->pool_id);
 
 			processors[it->nodeID].addOutLink(it->parentID,links[it->parentID]);
 			// also add reverse path
@@ -89,6 +90,7 @@ void createNetwork(){
 	//std::map<int,nodeProcessor> processors;
 	//std::map<int,nodeProcessor>::iterator it;
 	for (std::map<int,nodeProcessor>::iterator it = processors.begin() ; it != processors.end(); ++it){
+		print_debug(1,"calling init for %d \n",it->first);
 		it->second.init();
 	}
 	

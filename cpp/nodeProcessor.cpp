@@ -30,10 +30,11 @@ nodeProcessor::nodeProcessor(){
 }
 
 int nodeProcessor::addOutLink(int parent,POWER_POOL * outPool){
-	print_debug(2,"Adding parent link %d at node %d\n",parent,nodeId);
+	print_debug(2,"Adding parent link %d %d at node %d\n",parent,outPool->pool_id,nodeId);
 	parentId = parent;
-	if (outLink != NULL){
+	if (outLink == NULL){
 		outLink = outPool;
+		outLinks[parentId] = outPool;
 		return 0;
 	}
 	else{
@@ -58,9 +59,13 @@ int nodeProcessor::addChildLink(int child, POWER_POOL * childPool){
 
 int nodeProcessor::addChild(int child){
 	print_debug(2,"Adding child %d at node %d \n",child,nodeId);
-
 	if (childs.count(child) == 0){  // the target is unknown 
+		smData sm;
 		childs[child] = 1;
+		sm.id = child;
+		sm.power = 0;
+		sm.allocation = 0;
+		powerData[child] = sm;
 		return 0;
 	}
 	else{
@@ -78,24 +83,58 @@ void nodeProcessor::init()
 void nodeProcessor::run()
 {
 	powerEvent t;
+	int confirmCount=0;
 	print_debug(3,"processcessor run: %d\n",nodeId);
 	while(1)
 	{
+		/* Alternate algorithm for synchronisation
+		 * processer will keep count of childs childs.count()
+		 * it will keep count of TS_EVENT received for given lastTs int confirmCount
+		 * 
+		 * 
+		 */
+		
 		//print_debug(3,"node %d read queue %d\n",nodeId,inLink->pool_id);
-		t = inLink->pop();
-		print_debug(3,"node %d:received data sm %d ts %d power %f\n",nodeId,t.id,t.ts,t.power);
-/*
-		if (targets.count(t.id) != 0){  // the target is unknown 
-			if (targetLinks.count(targets[t.id]) != 0){ // the link is already set
-				targetLinks[targets[t.id]].push(t);
-			}
-			else{
-				print_error("SM does not exist %d\n",t.id);			
-			}
+		if (confirmCount == 0){
+			t = inLink->pop();
 		}
 		else{
-			print_error("SM does not exist %d\n",t.id);			
+			t = inLink->pop(TS_EVENT,lastTs);
 		}
-*/
+		print_debug(3,"node %d:received data sm %d ts %d power %f event %d\n",nodeId,t.id,t.ts,t.power,t.eventType);
+		if (t.eventType == POWER_EVENT && powerData.count(t.id) > 0 ){
+			powerData[t.id].power = t.power;
+			lastTs = t.ts;
+		}
+		print_debug(5,"comparing %d %d\n",t.eventType,TS_EVENT);
+		if ( t.eventType == TS_EVENT){
+			confirmCount ++;
+			print_debug(5,"confirm count %d %d\n",confirmCount ,childs.size());
+			if (confirmCount >= childs.size()){
+				confirmCount = 0;
+				if (outLink != NULL ){
+					powerEvent p;
+					p.id = nodeId;
+					p.eventType = POWER_EVENT;
+					p.ts = lastTs;
+					p.power = 0; // computation required
+					for (std::map<int,smData>::iterator it = powerData.begin() ; it != powerData.end(); ++it){
+						p.power += it->second.power;
+					}
+					if (nodeId != 0 ){
+						print_debug(4,"node %d:sending data sm %d ts %d power %f to %d\n",nodeId,p.id,p.ts,p.power,outLink->pool_id);
+						outLink->push(p);
+						p.eventType = TS_EVENT;
+						outLink->push(p);
+					}
+					else{
+						print_debug(4,"node %d:ts %d total power %f \n",nodeId,p.ts,p.power);
+						
+					}
+				}
+				
+				
+			}
+		}
 	}
 }
